@@ -1,7 +1,7 @@
 <?php
 
 $error="";$success="";
-
+$flag=0;
 if($_POST)
 {
     if($_POST['email']=='')
@@ -32,48 +32,53 @@ if($_POST)
         }
         else
         {
-            $query="INSERT INTO table2 (email,password) VALUES ('".mysqli_real_escape_string($link,$_POST['email'])."','".mysqli_real_escape_string($link,$_POST['password'])."')";
+            $query="SELECT email FROM table2";
             
-            mysqli_query($link,$query);
-            // $headers = "MIME-Version: 1.0" . "\r\n";
-            // More headers
+            $result= mysqli_query($link,$query);
             
-            
-            
-            
-        $to = $_POST['email'];
-        $subject = "Confirmation Email";
-        $message = "This mail is to verify your account being opened :)";
-        
-        if (mail($to,$subject,$message))
-        {
-            $success='<div class="alert alert-success" role="alert"><p><b> Your Account is being successfully created!<br> A confirmation email is sent to you :)</b></p></div>';
-        }
-       else
-        {
-            $error='<div class="alert alert-danger" role="alert"><b>Failed Some Internal error occured. Try again later :(</b><p></p> </div>';
-
-        }
-        
+                    
+                while($row=mysqli_fetch_array($result))
+                {
+                    if($row['email']==$_POST['email'])
+                    {
+                        $GLOBALS['flag']=1;
+                        break;
+                    }
+                }
             
             
-            
-            
-            
-            // $headers .= 'From: Dhairya Patel' . "\r\n";
-            // $to=$_POST['email'];
-            // $subject="Confirmation Email";
-            // $message="This mail is to verify your account being opened :)";
+            if($GLOBALS['flag']==1)
+            {
+                 $error='<div class="alert alert-danger" role="alert"><b>This E-Mail address is already registered.</b><p></p> </div>';
+            }
+            else
+            {
+                $query="INSERT INTO table2 (email,password) VALUES ('".mysqli_real_escape_string($link,$_POST['email'])."','".mysqli_real_escape_string($link,$_POST['password'])."')";
                 
-            //     if(mail($to,$subject,$message,$headers))
-            //     {
-            //         $success='<div class="alert alert-success" role="alert"><p><b> Your Account is being successfully created!<br> A confirmation email is sent to you :)</b></p></div>';
-            //     }
-            //     else
-            //     {
-            //         $error='<div class="alert alert-danger" role="alert"><b>Failed Some Internal error occured. Try again later :(</b><p></p> </div>';
-       
-            //     }
+                mysqli_query($link,$query);
+                
+                $to = $_POST['email'];
+                $subject = "Confirmation Email";
+                
+                $message = "This mail is to verify your account being opened :)";
+                
+                // Always set content-type when sending HTML email
+                $headers = "MIME-Version: 1.0" . "\r\n";
+                $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+                
+                // More headers
+                $headers .= 'From: Dhairya Patel' . "\r\n";
+               
+                if (mail($to,$subject,$message))
+                {
+                    $success='<div class="alert alert-success" role="alert"><p><b> Your Account is being successfully created!<br> A confirmation email is sent to you :)</b></p></div>';
+                }
+               else
+                {
+                    $error='<div class="alert alert-danger" role="alert"><b>Failed Some Internal error occured. Try again later :(</b><p></p> </div>';
+        
+                }
+            }
         }
         
     }
